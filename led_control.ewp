@@ -2075,6 +2075,7 @@
       <name>digi</name>
       <excluded>
         <configuration>Debug</configuration>
+        <configuration>Release</configuration>
       </excluded>
       <file>
         <name>$PROJ_DIR$\src\digi\digi_utils.c</name>
@@ -2480,6 +2481,7 @@
       <name>sim900</name>
       <excluded>
         <configuration>Debug</configuration>
+        <configuration>Release</configuration>
       </excluded>
       <file>
         <name>$PROJ_DIR$\src\sim900\sim900.c</name>
@@ -2543,6 +2545,7 @@
       <name>usb</name>
       <excluded>
         <configuration>Debug</configuration>
+        <configuration>Release</configuration>
       </excluded>
       <file>
         <name>$PROJ_DIR$\src\usb\usb_dev_serial.c</name>
@@ -2643,6 +2646,7 @@
     <name>usblib</name>
     <excluded>
       <configuration>Debug</configuration>
+      <configuration>Release</configuration>
     </excluded>
     <group>
       <name>device</name>

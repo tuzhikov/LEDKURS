@@ -597,23 +597,17 @@ int GO_PLAN()
                             Get_Next_Viz_Faz(DK[CUR_DK].PLAN.cur.prog, cur_prog_faza);
                             //
                        }
-                       ///
-
-
                    } // PROG1->PROG2
-                   /////////////
+                   //
                    Copy_STATES(&DK[CUR_DK].PLAN.cur, &DK[CUR_DK].PLAN.next);
                    Copy_STATES(&DK[CUR_DK].NEXT, &DK[CUR_DK].PLAN.cur);
                    //
                    DK[CUR_DK].NEXT.presence=true;
                    DK[CUR_DK].NEXT.source = PLAN;
-                   ///
                 }
         }
-        ///////////////////////
    }
-   ///
-   return (0);
+return (0);
 }
 //------------------------------------------------------------------------------
 // переключение состояний DK
