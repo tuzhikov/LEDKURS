@@ -140,7 +140,7 @@ void vpu_init() // это все по инициализации UART и создаем поток tn_kernel
     memset(&dataVpu,0,sizeof(dataVpu));
 
 //create sync mutex
-if (tn_mutex_create(&led_mutex, TN_MUTEX_ATTR_INHERIT, 0) != TERR_NO_ERR)
+if(tn_mutex_create(&led_mutex, TN_MUTEX_ATTR_INHERIT, 0) != TERR_NO_ERR)
     {
         dbg_puts("tn_mutex_create(&led_mutex) error");
         dbg_trace();
@@ -400,7 +400,7 @@ void DK_VPU_faza(const unsigned long faz_i)
 }
 /*----------------------------------------------------------------------------*/
 /*send message and get answer*/
-Type_ANS DataExchange(void)
+U16 DataExchange(void)
 {
   static int step=Null;
   static U8 number = NULL,countError = NULL;
@@ -632,9 +632,9 @@ if(SINGLE_FAZA == DK[CUR_DK].CUR.work){
 static void DK_Phase_Call(void)
 {
 //режим ЖМ
-if(vpu_exch.m_to_s.vpu==tlYF) {
+/*if(vpu_exch.m_to_s.vpu==tlYF) {
   DK_VPU_YF();
-  }
+  }*/
 // режим OS
 if(vpu_exch.m_to_s.vpu==tlOS) {
   DK_VPU_OS();

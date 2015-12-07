@@ -13,16 +13,19 @@
 #include "version.h"
 #include "tnkernel/tn.h"
 #include "dk/dk.h"
+#include "dk/kurs.h"
+#include "event/evt_fifo.h"
+//#include "pref.h"
 
-#define GPIO_PA3_GPIO       (GPIO_PA3_SSI0FSS & 0xFFFFFFF0)
-#define GPIO_PB2_GPIO       (GPIO_PB2_I2C0SCL & 0xFFFFFFF0)
+//#define GPIO_PA3_GPIO       (GPIO_PA3_SSI0FSS & 0xFFFFFFF0)
+//#define GPIO_PB2_GPIO       (GPIO_PB2_I2C0SCL & 0xFFFFFFF0)
 
 #define TVP_LEVEL       3
 
 static TN_TCB task_PINS_tcb;
 #define PINS_REFRESH_INTERVAL        80
 static unsigned int task_PINS_stk[TASK_PINS_STK_SZ];
-static unsigned char TVP_STATE[MaxTVP];
+//static unsigned char TVP_STATE[MaxTVP];
 
 
 struct o_pin_nfo
@@ -62,9 +65,9 @@ static struct o_pin_nfo const g_opins[OPIN_CNT] =
     //PA6, 34 pin
     { OPIN_TR_EN,        SYSCTL_PERIPH_GPIOA, GPIO_PORTA_BASE, GPIO_PIN_6 },
     //PA2, 28 pin
-    { OPIN_485_PV,       SYSCTL_PERIPH_GPIOF, GPIO_PORTF_BASE, GPIO_PIN_0 },
+    { OPIN_485_PV,       SYSCTL_PERIPH_GPIOA, GPIO_PORTA_BASE, GPIO_PIN_2 },
     //PF1, 61 pin
-    { OPIN_485_RST,       SYSCTL_PERIPH_GPIOF, GPIO_PORTF_BASE, GPIO_PIN_0 },
+    { OPIN_485_RST,      SYSCTL_PERIPH_GPIOF, GPIO_PORTF_BASE, GPIO_PIN_1 },
     //PH6, 62 pin
     { OPIN_DS1390_CS_CLOCK,        SYSCTL_PERIPH_GPIOH, GPIO_PORTH_BASE, GPIO_PIN_6 },
     //PH5, 62 pin
@@ -92,9 +95,7 @@ static struct o_pin_nfo const g_opins[OPIN_CNT] =
     //PB5, 91 pin
     { OPIN_D5,          SYSCTL_PERIPH_GPIOB, GPIO_PORTB_BASE, GPIO_PIN_5 },
     //PB4, 92 pin
-    { OPIN_D4,          SYSCTL_PERIPH_GPIOB, GPIO_PORTB_BASE, GPIO_PIN_4 },
-
-
+    { OPIN_D4,          SYSCTL_PERIPH_GPIOB, GPIO_PORTB_BASE, GPIO_PIN_4 }
 };
 //------------------------------------------------------------------------------
 // input pin's array
@@ -132,7 +133,7 @@ static struct i_pin_nfo const g_ipins[IPIN_CNT] =
     //PJ0, 14 pin
     { IPIN_UC8,     SYSCTL_PERIPH_GPIOJ, GPIO_PORTJ_BASE, GPIO_PIN_7 },
     /// IPIN_PW_CONTR
-    { IPIN_PW_CONTR,  SYSCTL_PERIPH_GPIOH, GPIO_PORTH_BASE, GPIO_PIN_7 },
+    { IPIN_PW_CONTR,  SYSCTL_PERIPH_GPIOH, GPIO_PORTH_BASE, GPIO_PIN_7 }
 };
 
 // local functions
@@ -559,9 +560,7 @@ BOOL pin_rd(enum i_pin pin)
     struct i_pin_nfo const* const p = &g_ipins[pin];
     return (MAP_GPIOPinRead(p->port, p->pin) & p->pin) != 0;
 }
-
 // local functions
-
 static void pins_pre_configure()
 {
   // Пин B7 - особенный! Его использование ещё надо разрешить!
@@ -574,7 +573,7 @@ static void pins_post_configure()
 {
     //struct i_pin_nfo const* ip;
     ///
-    static int j;
+    //static int j;
     //pin_on(OPIN_POWER);
     pin_on(OPIN_SST25VFXXX_CS_FLASH);
     pin_on(OPIN_DS1390_CS_CLOCK);

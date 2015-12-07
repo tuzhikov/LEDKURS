@@ -1,4 +1,4 @@
-//---------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 //  Модуль ДК
 // архитектура - model-controller
 #include <stdio.h>
@@ -20,19 +20,16 @@
 #ifdef KURS_DK
   #include "kurs.h"
 #endif
-
-  ////
-  BYTE   CUR_DK;
-  __DK   DK[DK_N];
-  TPROJECT     PROJ[DK_N];
-  BYTE   dk_num; //кол-во обнаруженных ДК
-  ///////
-  SYSTEMTIME   CT; // control time
-  unsigned char dw_buff[255];
+/*----------------------------------------------------------------------------*/
+__DK   DK[DK_N];
+TPROJECT     PROJ[DK_N];
+BYTE   CUR_DK;
+BYTE   dk_num; //кол-во обнаруженных ДК
+SYSTEMTIME   CT; // control time
+unsigned char dw_buff[255];
 
 //#define D_W_ENABLE
-  bool Check_TVP_En();
-
+bool Check_TVP_En();
 /*-------------------------------local function-------------------------------*/
 int  Get_Next_Viz_Faz(int prog, int cur_faz);
 /*----------------------------------------------------------------------------*/
@@ -42,7 +39,7 @@ void D_W(const char*s)
      debugee(s);
    #endif
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 #ifndef KURS_DK
 // обновить
 unsigned short Update_STATES_VO()
@@ -95,49 +92,34 @@ unsigned short Update_STATES_VO()
         ///////
 }
 #endif
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 unsigned short Update_STATES(bool flash)
 {
-   unsigned short fire_light=0;
-   ////
-
-   ////
+unsigned short fire_light=0;
    #ifdef KURS_DK
       Update_STATES_KURS(flash);
    #else
       fire_light=Update_STATES_VO();
    #endif
-      ///
-
-   ////
-   return(fire_light);
+return(fire_light);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 int Seconds_Between(SYSTEMTIME *tt, SYSTEMTIME *tl)
 {
-        //TDateTime tim, lim;
-        time_t tim, lim;
-        ////
-        tim = mktime(tt);
-        lim = mktime(tl);
-        ///
-        return (lim-tim);
-
+time_t tim, lim;
+tim = mktime(tt);
+lim = mktime(tl);
+return(lim-tim);
 }
-//------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 void New_Project()
 {
-
 #ifdef KURS_DK
    New_Project_KURS();
 #endif
-
 }
-//------------------------------------------------------------------------------
-
-int   Init_DK()
+/*----------------------------------------------------------------------------*/
+int Init_DK(void)
 {
         //
         memset(&DK[CUR_DK],0,sizeof(DK[CUR_DK]));
@@ -145,38 +127,33 @@ int   Init_DK()
         DK[CUR_DK].REQ.prior_req = PLAN;
         //
         DK[CUR_DK].synhro_mode = PROJ[CUR_DK].comments.inner.in.synhro_mode;
-        ///
+        //
         DK[CUR_DK].CUR.source=SERVICE;
         DK[CUR_DK].CUR.work = SPEC_PROG;
         DK[CUR_DK].CUR.spec_prog = SPEC_PROG_OC;
-        ///
+        //
         DK[CUR_DK].NEXT.work = SPEC_PROG;
         DK[CUR_DK].NEXT.spec_prog = SPEC_PROG_OC;
-
         //
         DK[CUR_DK].control.STA = STA_INIT;
         DK[CUR_DK].TVP.STA = STA_FIRST;
         DK[CUR_DK].VPU.STA = STA_FIRST;
         DK[CUR_DK].SERVICE.STA = STA_FIRST;
-        //////////////////////
+        //
         if (PROJ[CUR_DK].guard.restarts==0)
           PROJ[CUR_DK].guard.restarts=3;
         //
         if (PROJ[CUR_DK].guard.restart_interval==0)
           PROJ[CUR_DK].guard.restart_interval=3;
-
         //
         Init_TAKTS(&PROJ[CUR_DK]);
         //
         #ifdef KURS_DK
            Prepare_KURS_Structures();
         #endif
-
-
-        ///
-        return (0);
+return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // сравнивает 2 времени и при равно-больше - true
 bool Compare_Times(SYSTEMTIME *tt, SYSTEMTIME *tl)
 {
@@ -193,42 +170,33 @@ bool Compare_Times(SYSTEMTIME *tt, SYSTEMTIME *tl)
             return false;
         ////
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // окончание текущего состояния
-BOOL TIME_END()
+BOOL TIME_END(void)
 {
-        //SYSTEMTIME st;
-        //GetLocalTime(&st);
-        //
-        return (!DK[CUR_DK].control.len);
-        //return Compare_Times(&CT, &DK[CUR_DK].control.end);
+return (!DK[CUR_DK].control.len);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // плюсует к времени секунды
 void TIME_PLUS(SYSTEMTIME *tt, SYSTEMTIME *tplus, int sec_plus)
 {
-        //TDateTime tim, lim;
-        ////
-        time_t tim;
-        ////
-        tim = mktime(tt);
-        //lim = mktime(&tl);
-        //
-        tim = tim + sec_plus;
-        //tim=tim+sec_plus;
-        //
-        gmtime(tim,tplus);
-
+//
+time_t tim;
+//
+tim = mktime(tt);
+//
+tim = tim + sec_plus;
+//
+gmtime(tim,tplus);
 }
-
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 //Вычислить время цикла текущей программы (Tцикла)
 int Calc_Tc(int prog)
 {
        int c_f, n_f;
        int faz_n;
        int tc=0;
-       ///////////
+       //
        #ifdef   KURS_DK
             faz_n = PROG_PLAN.AmountFasa;
        #else
@@ -247,45 +215,39 @@ int Calc_Tc(int prog)
 DK[CUR_DK].control.Tproga = tc;
 return Null;
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 int GO_INIT()
 {
-    //SYSTEMTIME  st;
-   ////////////////
    // состояния
    typedef enum {START, EXIT} GO_STA;
    static GO_STA state; //
-   ///
+   //
    switch (state)
    {
-        case START:
+       case START:
         {
                 //GetLocalTime(&st);
                 //WeekOfTheYear(Now());
-
         }
-        ///
    }
-
-    return (0);
+return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // является ли данная фаза участвующей в цикле
 // prog - номер программы, prog_faza - порядковый номер фазы в программе
 bool  Is_Faz_Vis(int prog, int   prog_faza)
 {
-        bool  ret_b=false;
-        /////////////////////
-   #ifdef KURS_DK
+bool  ret_b=false;
+
+#ifdef KURS_DK
         if (PROG_PLAN.fazas[prog_faza].FasaProperty!=FAZA_PROP_TVP)
    #else
         if (DK[CUR_DK].PROJ->Program[prog].fazas[prog_faza].FasaProperty!=FAZA_PROP_TVP)
-   #endif
-           ret_b = true;
-        ///////
-        return (ret_b);
+#endif
+ret_b = true;
+return (ret_b);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // получает следующую видимую фазу для отображения на временной диаграмме
 int  Get_Next_Viz_Faz(int prog, int cur_faz)
 {
@@ -323,16 +285,14 @@ int  Get_Next_Viz_Faz(int prog, int cur_faz)
         }// if ret_i
         /////////////////////
         return (ret_i);
-
-
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // проверяет состояние
 // prog, faza-  зависит от контекста work
 bool TEST_STA(const STATE *sta, WORK_STATE  w_sta, BYTE prog, BYTE faza)
 {
         bool res=false;
-        ///
+        //
         if (sta->work == w_sta)
         switch (w_sta)
         {
@@ -342,14 +302,14 @@ bool TEST_STA(const STATE *sta, WORK_STATE  w_sta, BYTE prog, BYTE faza)
               res=true;
              break;
            }
-           /////
+           //
            case SINGLE_FAZA:
            {
              if (sta->faza == faza)
               res=true;
              break;
            }
-           /////
+           //
            case PROG_FAZA:
            {
              if (sta->prog == prog)
@@ -357,59 +317,47 @@ bool TEST_STA(const STATE *sta, WORK_STATE  w_sta, BYTE prog, BYTE faza)
                res=true;
              break;
            }
-           ///// SINGLE_FAZA
-
-
-
-
         }
-        //
-        return (res);
+return (res);
 }
-
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // скопировать состояния
 int Copy_STATES(STATE *dest_sta,const STATE *source_sta)
 {
-        //STATE *dest, *source;
-        ///
-        //dest = &dest_sta; source =(__STATE *) &source_sta;
-        memcpy(dest_sta,source_sta,sizeof(STATE));
-        ///
-        return (0);
+memcpy(dest_sta,source_sta,sizeof(STATE));
+return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 void Clear_STATE(STATE *sta)
 {
-        memset(sta,0,sizeof(STATE));
-        sta->spec_prog = SPEC_PROG_OC;
+memset(sta,0,sizeof(STATE));
+sta->spec_prog = SPEC_PROG_OC;
 }
-//------------------------------------------------------------------------------
-// ВОхвращает номер недели
+/*----------------------------------------------------------------------------*/
+// Вoхвращает номер недели
 int  WeekOfTheYear(SYSTEMTIME *st)
 {
-       DS1390_TIME time;
-        //
-       time.hour =  st->tm_hour ;
-        time.date = st->tm_mday;
-        time.min = st->tm_min;
-        //
-        time.month = st->tm_mon ;
-        time.sec = st->tm_sec;
-        time.year = st->tm_year;
-        //
-        int iwn = get_week_num(&time);
-
-    return (iwn);
+DS1390_TIME time;
+//
+time.hour =  st->tm_hour ;
+time.date = st->tm_mday;
+time.min = st->tm_min;
+//
+time.month = st->tm_mon ;
+time.sec = st->tm_sec;
+time.year = st->tm_year;
+//
+const int iwn = get_week_num(&time);
+return (iwn);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 //{"SUN","MON","TUE","WED","THU","FRI","SAT" };
 //  0      1     2     3     4     5     6
 int DayOfWeek(SYSTEMTIME *st)
 {
         DS1390_TIME time;
         //
-       time.hour =  st->tm_hour ;
+        time.hour =  st->tm_hour ;
         time.date = st->tm_mday;
         time.min = st->tm_min;
         //
@@ -420,16 +368,15 @@ int DayOfWeek(SYSTEMTIME *st)
         int id = get_day(&time);
         if (id)
           id--;
-
-    return (id);
+return (id);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // возвращает номер программы по времени CT
 int Get_Calend_Prog(STATE *sta)
 {
                int cur_week, cur_day_of_week;
                int day_plan, week_plan;
-               /////
+               //
                //wek=1..53
                 cur_week = WeekOfTheYear(&CT);
                 week_plan = DK[CUR_DK].PROJ->Year.YearCalendar[cur_week-1];
@@ -437,10 +384,10 @@ int Get_Calend_Prog(STATE *sta)
                 //cur_day_of_week = now.DayOfWeek();
                 cur_day_of_week = DayOfWeek(&CT);
                 day_plan = DK[CUR_DK].PROJ->WeeksPlans[week_plan].Calendar[cur_day_of_week];
-                ///
+                //
                 // seech for time slot and current program
                 int cur_sec=CT.tm_hour*3600 + CT.tm_min*60 + CT.tm_sec;
-                //////
+                //
                 int cur_slot=0;
                 int i_s=0;
                 int c_slots = DK[CUR_DK].PROJ->DaysPlans[day_plan].AmountCalendTime;
@@ -448,15 +395,12 @@ int Get_Calend_Prog(STATE *sta)
                 for (int i=1; i< c_slots; i++)
                 {
                   i_s = DK[CUR_DK].PROJ->DaysPlans[day_plan].CalendTime[i].BeginTimeWorks;
-                  ///////////
-
-                  ///////////
+                  //
                   if (cur_sec < i_s)
                         break;
                   else
                     cur_slot++;
                 }
-                /////////////////
                 // сдвигаем время начала слота
                 if (DK[CUR_DK].synhro_mode)
                 {
@@ -464,45 +408,38 @@ int Get_Calend_Prog(STATE *sta)
                        DK[CUR_DK].PROJ->comments.inner.in.syhhro_add;
                    DK[CUR_DK].cur_slot_start = i_s;
                 }
-                ////
+                //
                 sta->prog =
                     DK[CUR_DK].PROJ->DaysPlans[day_plan].CalendTime[cur_slot].NumProgramWorks;
                 sta->spec_prog =
                    DK[CUR_DK].PROJ->DaysPlans[day_plan].CalendTime[cur_slot].SpecProg;
-
-    return (0);
+return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 #ifdef KURS_DK
-
 void Load_Plan_Prog(int i_prog)
 {
-
-  if (!DK[CUR_DK].no_LOAD_PROG_PLAN)
+if (!DK[CUR_DK].no_LOAD_PROG_PLAN)
   flash_rd(FLASH_PROGS, CUR_DK*sizeof(TPROGRAMS) +  i_prog*sizeof(TPROGRAM),
                   (unsigned char*)&PROG_PLAN, sizeof(TPROGRAM));
-
 }
 #endif
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // Заполняет поля - work
 void  Fill_STATE_work(STATE *sta)
 {
-    if (sta->spec_prog)
+if (sta->spec_prog)
       sta->work = SPEC_PROG;
     else
       sta->work = PROG_FAZA;
-
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // Работа по календарному плану и программам
 int GO_PLAN()
 {
-    /////////////////
-    BYTE  cur_prog_faza;       // номер фазы в программе
-   //////////
+BYTE  cur_prog_faza;// номер фазы в программе
 
-   switch (DK[CUR_DK].PLAN.STA)
+switch (DK[CUR_DK].PLAN.STA)
    {
         // первый вход
         case STA_INIT:
@@ -541,7 +478,6 @@ int GO_PLAN()
                 //
                 break;
         }
-        ////////////////////////
         // ждем освобождения
         case STA_GET_REQ:
         {
@@ -609,18 +545,18 @@ int GO_PLAN()
    }
 return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // переключение состояний DK
 int  Switch_DK_States()
 {
-    return (0);
+return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 void Note_tvp_res(int f_i)
 {
 //DK[CUR_DK].REQ.req[TVP].prog_faza = f_i;
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // ищем чему соотсветствует запрос
 bool Calculate_TVP()
 {
@@ -681,8 +617,7 @@ bool Calculate_TVP()
         return (found);
 
 }
-//------------------------------------------------------------------------------
-//
+/*----------------------------------------------------------------------------*/
 int GO_TVP()
 {
         switch (DK[CUR_DK].TVP.STA)
@@ -773,13 +708,11 @@ int GO_TVP()
         }
     return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 void Calculate_SERVICE()
 {
-
-
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 int GO_ALARM()
 {
                   if (DK[CUR_DK].REQ.req[ALARM].presence)
@@ -793,8 +726,7 @@ int GO_ALARM()
                     }
 return Null;
 }
-//------------------------------------------------------------------------------
-
+/*----------------------------------------------------------------------------*/
 int GO_TUBMLER()
 {
                   if (DK[CUR_DK].REQ.req[TUMBLER].presence)
@@ -809,8 +741,7 @@ int GO_TUBMLER()
                     }
 return Null;
 }
-//------------------------------------------------------------------------------
-
+/*----------------------------------------------------------------------------*/
 int GO_SERVICE()
 {
     switch (DK[CUR_DK].SERVICE.STA)
@@ -835,12 +766,10 @@ int GO_SERVICE()
                 {
                     break;
                 }
-                ///
-
         }
 return Null;
 }
-//----------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 int GO_VPU()
 {
         switch (DK[CUR_DK].VPU.STA)
@@ -863,41 +792,30 @@ int GO_VPU()
                     }
                        break;
                 }
-                //// вышли
+                // вышли
                 case STA_EXIT:
                 {
                     break;
                 }
-                ///
-
         }
 return Null;
 }
-//------------------------------------------------------------------------------
-//
+/*----------------------------------------------------------------------------*/
 int   MODEL()
 {
-        // Общие состояния ДК
-        switch (DK[CUR_DK].REQ.prior_req)
-        {
-           case ALARM: {GO_ALARM();   break;}
-           //
-           case TUMBLER: {GO_TUBMLER(); break;}
-           //
-           case SERVICE: {GO_SERVICE(); break;}
-           //
-           case VPU: {GO_VPU(); break;}
-           //
-           case TVP: {
-             GO_TVP();
-             break;}
-           //
-           case PLAN: {GO_PLAN(); break;}
-           //
-        }
+// Общие состояния ДК
+switch (DK[CUR_DK].REQ.prior_req)
+  {
+  case ALARM:   {GO_ALARM();  break;}
+  case TUMBLER: {GO_TUBMLER();break;}
+  case SERVICE: {GO_SERVICE();break;}
+  case VPU:     {GO_VPU();    break;}
+  case TVP:     {GO_TVP();    break;}
+  case PLAN:    {GO_PLAN();   break;}
+  }
 return Null;
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 //  обработка поступающих запросов
 int REQUESTS()
 {
@@ -938,7 +856,7 @@ int REQUESTS()
 DK[CUR_DK].REQ.prior_req=PLAN;
 return (RET_OK);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 //генерирует таблицу тактов на основании CUR->NEXT
 int GEN_TAKTS()
 {
@@ -950,9 +868,7 @@ int GEN_TAKTS()
           Load_Plan_Prog(DK[CUR_DK].CUR.prog);
 
      #endif
-         /////////////
          Check_TVP_En();
-
         // СПЕЦ. ФАЗА-> ......
         if (DK[CUR_DK].CUR.work == SINGLE_FAZA)
         {
@@ -971,8 +887,6 @@ int GEN_TAKTS()
                         DK[CUR_DK].NEXT.faza);
 
         }
-        /////////
-        /////////
         // ФАЗА ПРоГРАММЫ-> ......
         if (DK[CUR_DK].CUR.work == PROG_FAZA)
         {
@@ -1003,50 +917,37 @@ int GEN_TAKTS()
 
         }
         */
-
-
-
-      return (0);
+return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // устанавдивает следующее состояние на СУСО
 int SET_PROM_STATE_LEDS()
 {
-        int prom_indx;
-        ///
+int prom_indx;
 
-        for (int i_napr=0; i_napr< DK[CUR_DK].PROJ->AmountDirects; i_napr++)
-        {
-                prom_indx = DK[CUR_DK].control.prom_indx[i_napr];
-                //
-                DK[CUR_DK].control.napr[i_napr] =
-                 prom_takts[CUR_DK][i_napr][prom_indx].col;
-
-        }
-        ////
-         return (0);
+for(int i_napr=0; i_napr< DK[CUR_DK].PROJ->AmountDirects; i_napr++)
+  {
+  prom_indx = DK[CUR_DK].control.prom_indx[i_napr];
+  DK[CUR_DK].control.napr[i_napr] = prom_takts[CUR_DK][i_napr][prom_indx].col;
+  }
+return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // установить состояние на локальных силовых каналах
 int SET_OSN_STATE_LEDS()
 {
-        for (int i_napr=0; i_napr < DK[CUR_DK].PROJ->AmountDirects; i_napr++)
-        {
-                DK[CUR_DK].control.napr[i_napr] =
-                 osn_takt[CUR_DK][i_napr];
-
-                 //TAKTS::osn_takt[i_napr].col;
-
-        }
-        ////
-        return (0);
+for (int i_napr=0; i_napr < DK[CUR_DK].PROJ->AmountDirects; i_napr++)
+  {
+  DK[CUR_DK].control.napr[i_napr] = osn_takt[CUR_DK][i_napr];
+  }
+return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // установить состояние на локальных силовых каналах
 int SET_SPEC_PROG_LEDS()
 {
         STATES_LIGHT  fill_col=ALL_OFF;
-        /////////////
+        //
         switch (DK[CUR_DK].CUR.spec_prog)
         {
            case SPEC_PROG_YF:
@@ -1054,14 +955,14 @@ int SET_SPEC_PROG_LEDS()
               fill_col= YELLOW_FLASH;
               break;
            }
-           ///
+           //
            case SPEC_PROG_OC:
            {
               fill_col= ALL_OFF;
               break;
 
            }
-           ///
+           //
            case SPEC_PROG_KK:
            {
               fill_col= RED;
@@ -1072,12 +973,9 @@ int SET_SPEC_PROG_LEDS()
         //
         for (int i_napr=0; i_napr< DK[CUR_DK].PROJ->AmountDirects; i_napr++)
                 DK[CUR_DK].control.napr[i_napr] = fill_col;
-        //////////////////
-        ///////////
-        return (0);
-
+return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // проверяет, есть ли в текущей программе ТВП
 bool Check_TVP_En()
 {
@@ -1100,28 +998,24 @@ bool Check_TVP_En()
        {
          DK[CUR_DK].tvp_en[tvp_i] = false;
        }
-       ///
-
     for (int f_i=0; f_i < faz_n; f_i++)
         {
 
            if (proga->fazas[f_i].FasaProperty != FAZA_PROP_FIKS)
            {
              DK[CUR_DK].TVP.enabled=true;
-             ////////////
+             //
              for (int tvp_i=0; tvp_i< MaxTVP; tvp_i++)
              {
                 if (proga->fazas[f_i].tvps[tvp_i].pres)
                 {
                   DK[CUR_DK].tvp_faza[tvp_i]=f_i;
-                  ///
+                  //
                   DK[CUR_DK].tvp_en[tvp_i] = true;
                   // proga->fazas[f_i].tvps[tvp_i].pres;
                 }
-
-
              }
-             /////////////
+             //
              /*
              tvp_n = proga->fazas[f_i].tvps[0].pres;
              if (tvp_n==1)
@@ -1143,21 +1037,18 @@ bool Check_TVP_En()
              //return (true);
            }
         }
-        ////
-    return (ret_b);
+return (ret_b);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // Проверяем на сколько убежал цикл
 // Возвращает время убегания
 int  Check_Synhro(bool noKK)
 {
       int sec_part=0;
-      //////////////
+      //
       if ((DK[CUR_DK].CUR.source == PLAN) &&
           (DK[CUR_DK].CUR.spec_prog == SPEC_PROG_YF))
-       return 0;
-      /////////////////
-
+          return 0;
       if (DK[CUR_DK].synhro_mode)
       if (DK[CUR_DK].NEXT.work==PROG_FAZA)
       //if (DK[CUR_DK].CUR.work==PROG_FAZA)
@@ -1176,12 +1067,11 @@ int  Check_Synhro(bool noKK)
          if (sec_part<3)
          if (noKK)
            return 0;
-         //////////////////////
          // цикл сбился и нужна корректировка
          int tim = DK[CUR_DK].control.Tproga - sec_part;
          //if (noKK==false)
              tim=tim- DK[CUR_DK].PROJ->guard.kk_len ;
-         ////////
+         //
          if (noKK)
          { // true - вызов в рабочем цикле, без КК
            // учет дельты
@@ -1193,14 +1083,9 @@ int  Check_Synhro(bool noKK)
            if (tim==0)
              return 0;
          }
-         //////
-         ////текущий момент попал в хвост КК
+         //текущий момент попал в хвост КК
          if (tim<0)
-            tim = tim + DK[CUR_DK].control.Tproga; //????????
-         ///
-         //if (tim==0)
-         //  return 0;
-         /////
+            tim = tim + DK[CUR_DK].control.Tproga; //
          DK[CUR_DK].control.len = tim;
          DK[CUR_DK].CUR.spec_prog = SPEC_PROG_YF;
          DK[CUR_DK].CUR.work = SPEC_PROG;
@@ -1208,16 +1093,10 @@ int  Check_Synhro(bool noKK)
          SET_SPEC_PROG_LEDS();
          DK[CUR_DK].control.STA=STA_SPEC_PROG;
          return tim;
-
       }
-      //
-      //if (sec_part<3)
-      //  sec_part=0;
-      ////
-      return (0);
-
+return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 int Correct_Synhro()
 {
   /*
@@ -1240,14 +1119,14 @@ int Correct_Synhro()
   */
   return 0;
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // сравнивает состояния
 BOOL EQ_States(STATE *sta1, STATE *sta2)
 {
-        bool res=false;
-        ///
-        if (sta1->work == sta2->work)
-        switch (sta1->work)
+       bool res=false;
+       //
+       if (sta1->work == sta2->work)
+       switch (sta1->work)
         {
            case SPEC_PROG:
            {
@@ -1255,14 +1134,14 @@ BOOL EQ_States(STATE *sta1, STATE *sta2)
               res=true;
              break;
            }
-           /////
+           //
            case SINGLE_FAZA:
            {
              if (sta1->faza == sta2->faza)
               res=true;
              break;
            }
-           /////
+           //
            case PROG_FAZA:
            {
              if (sta1->prog == sta2->prog)
@@ -1270,18 +1149,10 @@ BOOL EQ_States(STATE *sta1, STATE *sta2)
                res=true;
              break;
            }
-           ///// SINGLE_FAZA
-
-
-
-
         }
-        //
-        return (res);
-
+return (res);
 }
-//------------------------------------------------------------------------------
-
+/*----------------------------------------------------------------------------*/
 void Event_Change_Fase()
 {
      char buf[128];
@@ -1327,19 +1198,16 @@ void Event_Change_Fase()
         if (DK[CUR_DK].CUR.source==PLAN) strcat(buf,"ПЛАН");
         //
         strcat(buf,"\n");
-
-        ////////////////
-    //
-    Event_Push_Str(buf);
-
+        //
+        Event_Push_Str(buf);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // вызывается при переходах состояний
 int CUR_NEXT()
 {
 
                         D_W("CUR_NEXT. Change STATE\n");
-                        //////////////////////
+                        //
                         if ((TEST_STA(&DK[CUR_DK].CUR, SPEC_PROG, SPEC_PROG_OC,0)) ||
                             (TEST_STA(&DK[CUR_DK].CUR, SPEC_PROG, SPEC_PROG_YF,0)) )
                         //if (DK[CUR_DK].CUR.work==SPEC_PROG)
@@ -1365,10 +1233,10 @@ int CUR_NEXT()
                              //if (Correct_Synhro())
                               return (0);
                            }
-                           ////
+                           //
                            memcpy(&DK[CUR_DK].control.start, &CT, sizeof(SYSTEMTIME));
                            TIME_PLUS(&CT, &DK[CUR_DK].control.end, DK[CUR_DK].PROJ->guard.kk_len);
-                           //////
+                           //
                            /*
                            if (TEST_STA(&DK[CUR_DK].CUR, SPEC_PROG, SPEC_PROG_YF,0))
                            {
@@ -1385,15 +1253,14 @@ int CUR_NEXT()
                            ///
                            return 0;
                         }
-                        /////
+                        //
                         if (TEST_STA(&DK[CUR_DK].CUR, SPEC_PROG, SPEC_PROG_KK,0))
                         if (DK[CUR_DK].NEXT.work!=SPEC_PROG)
                         {
                              DK[CUR_DK].PLAN.STA=STA_INIT;;
                              MODEL();
                         }
-                        ///////////
-
+                        //
                         if (Check_Synhro(true))
                            {
                              //if (Correct_Synhro())
@@ -1408,8 +1275,7 @@ int CUR_NEXT()
                           return (0);
                         }
                         */
-                        //////
-
+                        //
                         Copy_STATES(&DK[CUR_DK].OLD, &DK[CUR_DK].CUR);
                         Copy_STATES(&DK[CUR_DK].CUR, &DK[CUR_DK].NEXT);
                         // обнуляем следующее состояние
@@ -1417,7 +1283,7 @@ int CUR_NEXT()
                         //
                         if (!EQ_States(&DK[CUR_DK].CUR, &DK[CUR_DK].OLD))
                           Event_Change_Fase();
-                        ///////
+                        //
                         // перешли на ОС?
                         if (TEST_STA(&DK[CUR_DK].CUR, SPEC_PROG, SPEC_PROG_OC,0))
                         {
@@ -1444,10 +1310,6 @@ int CUR_NEXT()
                         //
                         if (DK[CUR_DK].CUR.source == SERVICE)
                             DK[CUR_DK].SERVICE.cur.set = true;
-                        //
-
-
-                        ///
                         // определяем - что будем следующим
                         // если спец. прога - своё состояние
                         if (DK[CUR_DK].CUR.work== SPEC_PROG)
@@ -1491,10 +1353,9 @@ int CUR_NEXT()
                           DK[CUR_DK].control.len = 1;
 
                         }
-                        ///////
-        return (0);
+return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // устанавдивает следующее состояние на удаленных СУСО
 // корректирует время окончания, еапример, для ТВП или срочных запросов
 // Включает коммуникацию и потерю связи. Учитывает общее время начала и
@@ -1502,7 +1363,6 @@ int CUR_NEXT()
 int SET_NEXT_STATE()
 {
         D_W("SET_NEXT_STATE()\n");
-        /////
         // повторение фаз после ТВП
         if (DK[CUR_DK].CUR.source==TVP)
           if (DK[CUR_DK].NEXT.source==PLAN)
@@ -1514,9 +1374,8 @@ int SET_NEXT_STATE()
                  DK[CUR_DK].PLAN.cur.set = true;
                  GO_PLAN();
              }
-
           }
-        ///////////////////
+        //
         if (DK[CUR_DK].CUR.source > DK[CUR_DK].NEXT.source)
         {
            D_W("MOre prioritet\n");
@@ -1525,7 +1384,6 @@ int SET_NEXT_STATE()
            if (DK[CUR_DK].CUR.work == SPEC_PROG)
            {
                 memcpy(&DK[CUR_DK].control.end, &CT, sizeof(SYSTEMTIME));
-                //
                 CUR_NEXT();
            }
            else
@@ -1535,7 +1393,6 @@ int SET_NEXT_STATE()
                   //int i = ;osn_takt_time
                   if ((osn_takt_time[CUR_DK] - DK[CUR_DK].control.len) > DK[CUR_DK].PROJ->Program.fazas[DK[CUR_DK].CUR.prog_faza].Tmin)
                     DK[CUR_DK].control.len = 0;//DK[CUR_DK].PROJ->Program.fazas[DK[CUR_DK].CUR.prog_faza].Tmin;
-                  //////////////////
                   // повторение фаз после ТВП
                   if (DK[CUR_DK].CUR.source==PLAN)
                     if (DK[CUR_DK].OLD.source==PLAN)
@@ -1545,23 +1402,13 @@ int SET_NEXT_STATE()
                      {
                         DK[CUR_DK].control.len = 0;
                       }
-
-          }
-        ///////////////////
-
-
-
-                  ///////////////////
+                  }
               }
-
            }
-        }
-        /////////////////////////////////
-
-
-        return (0);
+        }// end if()
+return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 void Check_Low_Level_Spec_Prog()
 {
     static BYTE  req_n;
@@ -1570,26 +1417,18 @@ void Check_Low_Level_Spec_Prog()
       return;
     //
     if (DK[CUR_DK].REQ.prior_req <= DK[CUR_DK].CUR.source)
-     if (DK[CUR_DK].REQ.req[req_n].work == SPEC_PROG)
-     {
-         //включаем спец. прогу
-         memcpy(&DK[CUR_DK].control.end, &CT, sizeof(SYSTEMTIME));
-         //
-         DK[CUR_DK].control.len=0;
-
-         CUR_NEXT();
-         ///
-
-     }
-
-
+    if (DK[CUR_DK].REQ.req[req_n].work == SPEC_PROG){
+      //включаем спец. прогу
+      memcpy(&DK[CUR_DK].control.end, &CT, sizeof(SYSTEMTIME));
+      DK[CUR_DK].control.len=0;
+      CUR_NEXT();
+      }
 }
-//-----------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // переключатель состояний ДК.
 int CONTROL()
 {
         int prom_indx;
-        ////
         // ТИкаем
         if (DK[CUR_DK].control.len)
           DK[CUR_DK].control.len--;
@@ -1610,7 +1449,6 @@ int CONTROL()
                     ///
                     break;
                 }
-                ///
                 case STA_SPEC_PROG:
                 {
                    if (TIME_END())
@@ -1623,7 +1461,7 @@ int CONTROL()
                    {
                         SET_NEXT_STATE();
                    }
-                   break;//??????
+                   break;
                 }
                 //
                 case STA_OSN_TAKT:
@@ -1633,7 +1471,7 @@ int CONTROL()
                    {
                         SET_NEXT_STATE();
                    }
-                   //////
+                   //
                    if (TIME_END())
                    {
                       //закончилось время
@@ -1654,7 +1492,6 @@ int CONTROL()
                       memcpy(&DK[CUR_DK].control.start, &DK[CUR_DK].control.end, sizeof(SYSTEMTIME));
                       // Окончание пром. тактов
                       TIME_PLUS(&DK[CUR_DK].control.start, &DK[CUR_DK].control.end, Tprom_len[CUR_DK]);
-
                       //memcpy(&DK[CUR_DK].control.end, &DK[CUR_DK].CUR.end, sizeof(SYSTEMTIME));
                       //  чистим индексы
                       for (int i=0;i < DK[CUR_DK].PROJ->AmountDirects; i++)
@@ -1665,12 +1502,11 @@ int CONTROL()
                       //
                       SET_PROM_STATE_LEDS();
                       DK[CUR_DK].control.STA = STA_PROM_TAKTS;
-
                    }
-                    break;
+                   break;
 
                 }
-                /////////
+                //
                 case STA_PROM_TAKTS:
                 {
                      if (TIME_END())
@@ -1693,21 +1529,16 @@ int CONTROL()
                                DK[CUR_DK].control.prom_time[i_n]=0;
 
                             }
-                       ///
                      }
                      //
                      SET_PROM_STATE_LEDS();
                      //
-                      break;
+                     break;
                 }
-                ///////////////////////////
-
         }
-       ////////////////
-
-      return (0);
+return (0);
 }
-//------------------------------------------------------------------------------
+/*----------------------------------------------------------------------------*/
 // тактируем раз в 0.5с
 unsigned short DK_MAIN()
 {
@@ -1749,11 +1580,9 @@ unsigned short DK_MAIN()
         //
         return (fire_light);
 }
-//------------------------------------------------------------------------------
-
-////////////////////////////////////////////////////////////////////////////////////
-// ВЫделены функции
-////////////////////////////////////////////////////////////////////////////////////
+/*----------------------------------------------------------------------------*/
+/* Выделены функции */
+/*----------------------------------------------------------------------------*/
 void DK_Service_OS(void)
 {
     DK[CUR_DK].REQ.req[SERVICE].spec_prog = SPEC_PROG_OC;
@@ -1761,7 +1590,7 @@ void DK_Service_OS(void)
     DK[CUR_DK].REQ.req[SERVICE].source = SERVICE;
     DK[CUR_DK].REQ.req[SERVICE].presence = true;
 }
-
+/*----------------------------------------------------------------------------*/
 void DK_Service_YF(void)
 {
     DK[CUR_DK].REQ.req[SERVICE].spec_prog = SPEC_PROG_YF;
@@ -1769,12 +1598,13 @@ void DK_Service_YF(void)
     DK[CUR_DK].REQ.req[SERVICE].source = SERVICE;
     DK[CUR_DK].REQ.req[SERVICE].presence = true;
 }
-
+/*----------------------------------------------------------------------------*/
 void DK_Service_undo(void)
 {
     //memset(&(DK[CUR_DK].REQ.req[SERVICE]),0,sizeof(STATE));
     Clear_STATE(&(DK[CUR_DK].REQ.req[SERVICE]));
 }
+/*----------------------------------------------------------------------------*/
 void DK_Service_KK(void)
 {
     DK[CUR_DK].REQ.req[SERVICE].spec_prog = SPEC_PROG_KK;
@@ -1782,7 +1612,7 @@ void DK_Service_KK(void)
     DK[CUR_DK].REQ.req[SERVICE].source = SERVICE;
     DK[CUR_DK].REQ.req[SERVICE].presence = true;
 }
-
+/*----------------------------------------------------------------------------*/
 void DK_Service_faza(unsigned long faz_i)
 {
      DK[CUR_DK].REQ.req[SERVICE].work = SINGLE_FAZA;

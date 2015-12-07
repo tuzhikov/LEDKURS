@@ -41,24 +41,24 @@ static void task_adc_func(void* param);
 // размер буфера ADC
 #define ADC_BUF_N       30
 // коэффициент прореживания
-#define ADC_DIV_N   1
+#define ADC_DIV_N   1  
 ////
 static int adc_div=0;
 //
 static ADC_DATA adc_data[ADC_BUF_N];
-static unsigned char adc_pos; //позиция в массиве кругового
-//static unsigned char adc_divider; // прореживание результатов АЦП
-//static int adc_go=0;
+static unsigned char adc_pos; //позиция в массиве кругового 
+static unsigned char adc_divider; // прореживание результатов АЦП
+static int adc_go=0;
 ///
 #define UDC_BUF_N       20
 static ADC_DATA udc_data[UDC_BUF_N];
-static unsigned char udc_pos[UDC_BUF_N]; //позиция в массиве кругового
-static unsigned char udc_pos_PW; //позиция в массиве кругового
+static unsigned char udc_pos[UDC_BUF_N]; //позиция в массиве кругового 
+static unsigned char udc_pos_PW; //позиция в массиве кругового 
 static unsigned long udc_data_PW[UDC_BUF_N];
 
 
 //static int   reboot_tryes = 0; //кол-во попыток перезапуска
-//static int   ADC_STAT;
+static int   ADC_STAT;
 // Состояние выходов токов и напряжений по данным АЦП
 unsigned char  U_STAT[U_CH_N]; //зафиксированное значение напряжения
 unsigned char  I_STAT[I_CH_N]; //зафиксированное значение токов
@@ -87,23 +87,23 @@ unsigned long sens_plus_count[SENS_N];
 unsigned long sens_zero_count[SENS_N];
 unsigned long sens_count; //общий счетчик
 //
-//static DS1390_TIME last_reboot_time;
+//static DS1390_TIME last_reboot_time;  
 static unsigned long   cur_time;
 //static unsigned long period_tick;
 //static unsigned char pw_count=0;
-static volatile  unsigned char ADC_WORK_FLAG;
+volatile  unsigned char ADC_WORK_FLAG;
 
 
 void Calc_Middle();
 void Calc_Middle_U();
-
+ 
 void adc_init()
 {
     dbg_printf("Initializing ADC0...");
     //
     //period_tick = MAP_SysTickPeriodGet();
     //
-    //adc_divider=0;
+    adc_divider=0;
     for (int i=0; i<U_CH_N; i++)
     {
        u_time_dif[i]=0;
@@ -112,27 +112,27 @@ void adc_init()
        //sens_count[i]=0;
     }
     ///
-
+    
     /////
     adc_pos=0;
     //
-    //ADC_STAT=0;
+    ADC_STAT=0;
     U_STAT_PW_last=0;
     U_STAT_PW=0;
-
+    
     //reboot_i=123456;
-    //DS1390_TIME time;
+    //DS1390_TIME time;    
     //BOOL true_time = GetTime_DS1390(&last_reboot_time);
     /////
     // CCP INIT!!!!
     /*
     MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER1);
-    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER2);
-    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER3);
+    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER2);  
+    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER3);  
     /////////
     GPIOPinConfigure(GPIO_PD4_CCP3);
-
+    
     ROM_GPIOPinTypeTimer(GPIO_PORTE_BASE, GPIO_PIN_7);  // IC1
     */
     /////////
@@ -145,28 +145,28 @@ void adc_init()
     //MAP_TimerLoadSet(TIMER0_BASE, TIMER_A, ROM_SysCtlClockGet());
     //ROM_TimerLoadSet(TIMER1_BASE, TIMER_A, ROM_SysCtlClockGet() / 2);
     //
-
+    
     //MAP_TimerConfigure(TIMER0_BASE, TIMER_CFG_32_BIT_PER); // periodic mode
     //TimerPrescaleSet(TIMER0_BASE, TIMER_A, 100);
     //MAP_TimerEnable(TIMER0_BASE, TIMER_BOTH);
     //cur_time = MAP_TimerValueGet(TIMER0_BASE,TIMER_A);
     //MAP_SysCtlDelay(2);
     //period_tick = MAP_TimerValueGet(TIMER0_BASE,TIMER_A);
-
+    
     /*
     SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER2);
     //SysCtlPeripheralReset(SYSCTL_PERIPH_TIMER2);
-    TimerConfigure(TIMER2_BASE, TIMER_CFG_32_BIT_PER );
+    TimerConfigure(TIMER2_BASE, TIMER_CFG_32_BIT_PER ); 
     //TimerControlStall(TIMER0_BASE, TIMER_A, true);
-    TimerLoadSet(TIMER2_BASE, TIMER_A, SysCtlClockGet()/1000);
+    TimerLoadSet(TIMER2_BASE, TIMER_A, SysCtlClockGet()/1000); 
     TimerEnable(TIMER2_BASE, TIMER_BOTH);
     */
     ///////////////////
     // настраиваем входные зеленые пины на регистрацию шима
     IntMasterEnable();
-
+    
     ////////////////
-
+    
     //MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
     MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
     MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOE);
@@ -211,9 +211,9 @@ void adc_init()
     MAP_ADCSequenceStepConfigure(ADC0_BASE, 0, 6, ADC_CTL_CH6);                            // AIN12, UBAT
     MAP_ADCSequenceStepConfigure(ADC0_BASE, 0, 7, ADC_CTL_CH7 | ADC_CTL_IE | ADC_CTL_END);                // temperature sensor
     ////////
-
+    
     MAP_ADCHardwareOversampleConfigure(ADC0_BASE, 64);
-
+    
     MAP_ADCIntClear(ADC0_BASE, 0);
     MAP_ADCIntClear(ADC0_BASE, 1);
     //
@@ -227,7 +227,7 @@ void adc_init()
     //MAP_ADCSequenceEnable(ADC0_BASE, 1);
     MAP_ADCProcessorTrigger(ADC0_BASE, 0);
 
-
+    
     if (tn_task_create(&task_adc_tcb, &task_adc_func, TASK_ADC_PRI,
         &task_adc_stk[TASK_ADC_STK_SZ - 1], TASK_ADC_STK_SZ, 0,
         TN_TASK_START_ON_CREATION) != TERR_NO_ERR)
@@ -236,7 +236,7 @@ void adc_init()
         dbg_trace();
         tn_halt();
     }
-
+    
     dbg_puts("[done]");
 }
 //------------------------------------------------------------------------------
@@ -258,7 +258,7 @@ void Get_real_adc(ADC_DATA *data)
 //------------------------------------------------------------------------------
 void Get_real_pwm(ADC_DATA *data)
 {
-   Check_Channels();
+   Check_Channels();  
    //Calc_Middle_U();
     //
     if (U_STAT[0]) data->UG1 = udc_middle[0];
@@ -283,24 +283,24 @@ void Get_real_pwm(ADC_DATA *data)
 //------------------------------------------------------------------------------
 void adc_seq0_int_handler()
 {
-    //static int i;
+    static int i;
     MAP_ADCIntClear(ADC0_BASE, 0);
     ///////
     if (adc_div>=ADC_DIV_N)
     {
-       MAP_ADCSequenceDataGet(ADC0_BASE, 0, &(adc_data[adc_pos].UG1));
+       i=MAP_ADCSequenceDataGet(ADC0_BASE, 0, &(adc_data[adc_pos].UG1));
        adc_pos++;
        if (adc_pos >= ADC_BUF_N)
          adc_pos=0;
        //
        adc_div=0;
-    }
+    }   
     else
       adc_div++;
-    /////////////
+    /////////////  
     MAP_ADCProcessorTrigger(ADC0_BASE, 0);
-
-
+       
+    
 }
 //------------------------------------------------------------------------------
 // наличие сетевого напряжения
@@ -309,34 +309,65 @@ void IntGPIO_PW_CONTR(void)
  // выясняем на каком пине произошло прерывание
   unsigned char status = GPIOPinIntStatus(GPIO_PORTH_BASE, true);
   cur_time = hw_time();
-
+  
+  //unsigned long pin;
+  //int i_pos;
   static unsigned long diff, cur_t;
-  cur_t =  MAP_TimerValueGet(TIMER0_BASE,TIMER_A);
-
-   if(status & GPIO_PIN_7)
+  cur_t =  MAP_TimerValueGet(TIMER0_BASE,TIMER_A); 
+  //cur_t = MAP_SysTickValueGet();
+  ///
+       if (status & GPIO_PIN_7)
        {
-          if (!pin_rd(IPIN_PW_CONTR))
-          {
+          if (!pin_rd(IPIN_PW_CONTR)) 
+          {  
               //u_last_change[ic] = cur_time;
               u_last_change_PW = cur_t;
           }
           else
           {
-              udc_pos_PW++;
+              udc_pos_PW++; 
               if (udc_pos_PW >= UDC_BUF_N)
                 udc_pos_PW=0;
-
+              ///
               if (u_last_change_PW > cur_t)
                 diff = u_last_change_PW- cur_t;
               else
-                diff = 0;
-
+                diff = 0;//u_last_change[ic] + 0xFFFFFFFF-cur_t;
+              ///////////
+               //Filter
+              //if (diff<100000)
+              //  continue;
+             
+              
               udc_data_PW[udc_pos_PW] = diff;
           }
-          u_time_dif_PW = cur_time;
+          u_time_dif_PW = cur_time;  
           ///
           GPIOPinIntClear(GPIO_PORTH_BASE, GPIO_PIN_7);
-       }
+       } 
+       //////////////////
+       
+       // проверяем уровень на входе, если высокий. то
+     //
+     /////////
+    
+  
+  /////////////////////
+       /*
+  //чистим
+    if ((cur_time - u_time_dif_PW) > 30)
+    {
+       udc_pos_PW++; 
+       if (udc_pos_PW >= UDC_BUF_N)
+                udc_pos_PW=0;
+       //////////////
+       udc_data_PW[udc_pos_PW] = 0;
+    } 
+       */
+  ////////////////////
+ 
+ 
+  
 }
 //------------------------------------------------------------------------------
 //прерывания от ШИМА напряжения на зеленых
@@ -345,27 +376,27 @@ void IntGPIO_U(void)
   // выясняем на каком пине произошло прерывание
   unsigned char status = GPIOPinIntStatus(GPIO_PORTJ_BASE, true);
   cur_time = hw_time();
-
+  
   unsigned long pin;
   int i_pos;
   static unsigned long diff, cur_t;
-  cur_t =  MAP_TimerValueGet(TIMER0_BASE,TIMER_A);
+  cur_t =  MAP_TimerValueGet(TIMER0_BASE,TIMER_A); 
   //cur_t = MAP_SysTickValueGet();
   ///
   for (int ic=0; ic<8; ic++)
   {
        pin = 1<< ic;
-
+       
        //
        if (status & pin)
        {
-          if (!GPIOPinRead( GPIO_PORTJ_BASE, pin))
-          {
+          if (!GPIOPinRead( GPIO_PORTJ_BASE, pin)) 
+          {  
               //u_last_change[ic] = cur_time;
               u_last_change[ic] = cur_t;
               /////////
               if (ic==0) pin_on(OPIN_ERR_LED);
-              /////
+              /////  
           }
           else
           {
@@ -376,23 +407,23 @@ void IntGPIO_U(void)
               ///////////
               /////////
               if (ic==0) pin_off(OPIN_ERR_LED);
-              /////
+              /////  
               /*
               //Filter
               if (diff<100000)
               {
                 GPIOPinIntClear(GPIO_PORTJ_BASE, pin);
                 continue;
-
-              } */
+                
+              } */ 
               //
-              i_pos = udc_pos[ic]++;
+              i_pos = udc_pos[ic]++; 
               if (i_pos >= UDC_BUF_N)
                 i_pos=udc_pos[ic]=0;
-
+              
               ///
               switch (ic)
-              {
+              {  
                   case 0:udc_data[i_pos].UG1 = diff; break;
                   case 1:udc_data[i_pos].UG2 = diff; break;
                   case 2:udc_data[i_pos].UG3 = diff; break;
@@ -403,20 +434,20 @@ void IntGPIO_U(void)
                   case 7:udc_data[i_pos].UG8 = diff; break;
               }
               ///
-
-
+              
+              
               //udc_data[i_pos].
           }
-        u_time_dif[ic] = cur_time;
+        u_time_dif[ic] = cur_time;  
         ///
         GPIOPinIntClear(GPIO_PORTJ_BASE, pin);
-       }
+       } 
        //////////////////
-
+       
        // проверяем уровень на входе, если высокий. то
      //
      /////////
-
+    
   }
   /////////////////////
   /*
@@ -425,10 +456,10 @@ void IntGPIO_U(void)
   {
      if ((cur_time - u_time_dif[ic]) > 30)
      {
-       i_pos = udc_pos[ic]++;
+       i_pos = udc_pos[ic]++; 
        if (i_pos >= UDC_BUF_N)
            i_pos=udc_pos[ic]=0;
-       //   udc_middle[ic]=0;
+       //   udc_middle[ic]=0; 
               switch (ic)
               {   case 0:udc_data[i_pos].UG1 = 0; break;
                   case 1:udc_data[i_pos].UG2 = 0; break;
@@ -439,12 +470,12 @@ void IntGPIO_U(void)
                   case 6:udc_data[i_pos].UG7 = 0; break;
                   case 7:udc_data[i_pos].UG8 = 0; break;
               }
-     }
+     } 
   }
   */
   ////////////////////
-
-
+ 
+  
 }
 //------------------------------------------------------------------------------
 
@@ -465,17 +496,17 @@ void ALARMER()
 {
     DK[CUR_DK].REQ.req[ALARM].spec_prog = SPEC_PROG_OC;
     DK[CUR_DK].REQ.req[ALARM].work = SPEC_PROG;
-    DK[CUR_DK].REQ.req[ALARM].source = ALARM;
+    DK[CUR_DK].REQ.req[ALARM].source = ALARM;   
     DK[CUR_DK].REQ.req[ALARM].presence = true;
-
+  
 }
 */
 
 //------------------------------------------------------------------------------
-// Вычисление
+// Вычисление 
 void Calc_Middle()
 {
-  //unsigned long mid_res=0;
+  unsigned long mid_res=0;
     ///////
     for (int i=0; i< I_CH_N; i++) adc_middle[i]=0;
     ///
@@ -501,14 +532,14 @@ void Calc_Middle()
       adc_middle[6]/= ADC_BUF_N;
       adc_middle[7]/= ADC_BUF_N;
       ////
-
-
+    
+  
 }
 //------------------------------------------------------------------------------
-// Вычисление
+// Вычисление 
 void Calc_Middle_U()
 {
-  //unsigned long mid_res=0;
+  unsigned long mid_res=0;
     ///////
     for (int i=0; i< U_CH_N; i++) udc_middle[i]=0;
     udc_middle_PW=0;
@@ -542,53 +573,75 @@ void Calc_Middle_U()
       cur_time  = hw_time();
       // Post correct
       for (int ic=0; ic< U_CH_N; ic++)
-      {
+      {  
         if ((cur_time - u_time_dif[ic]) > ADC_RED_POROG)
           udc_middle[ic]=0;
         ////
         //if (udc_middle[ic]>10000)
         //  udc_middle[ic]=0;
-      }
+      }  
       ///
       if ((cur_time - u_time_dif_PW) > ADC_RED_POROG)
           udc_middle_PW = 0 ;
+        
+      
+  
 }
 //------------------------------------------------------------------------------
 // 0-OK
 int Check_Channels()
 {
+  // = hw_time();
+    /// проверяем ток
   cur_time  = hw_time();
-  //
+  ///  
   Calc_Middle();
-  // ток, красные
-  for (int ic=0; ic< I_CH_N; ic++)
-     {
+  //Calc_Middle_U();
+    /// ток, красные 
+     for (int ic=0; ic< I_CH_N; ic++)
+     { 
         if (adc_middle[ic] < 800)
           I_STAT[ic]=true;
         else
           I_STAT[ic]=false;
-     }
-  // проверяем наgряжение
-  for (int ic=0; ic< U_CH_N; ic++)
-     {
+     } 
+     ////
+     // проверяем наgряжение
+     for (int ic=0; ic< U_CH_N; ic++)
+     { 
        if (0.95*sens_zero_count[ic]>sens_plus_count[ic])
             U_STAT[ic]=true;
        else
             U_STAT[ic]=false;
+       //if ((cur_time - u_time_dif[ic]) > ADC_RED_POROG)
+       //if (udc_middle[ic]>300000)
      }
-  if (0.95*sens_zero_count[SENS_N-1]>sens_plus_count[SENS_N-1])
+     ///
+     //if (udc_middle_PW>550000)
+     if (0.95*sens_zero_count[SENS_N-1]>sens_plus_count[SENS_N-1])
           U_STAT_PW=true;
         else
           U_STAT_PW=false;
-return (0);
+     
+     //U_STAT_PW = U_STAT[7];
+     //U_STAT_PW = true;
+     
+     //
+     
+    
+    return (0);
 }
 //------------------------------------------------------------------------------
 void Check_Power()
 {
-sens_count++;
-
-for (int ic=0; ic<SENS_N; ic++)
-    {
+  ///
+  
+  
+   ////
+  sens_count++;
+    //////////////////////// 
+    for (int ic=0; ic<SENS_N; ic++)
+    {     
         if (pin_rd(ipins[ic]))
         {
            sens_plus_count[ic]++;
@@ -596,9 +649,16 @@ for (int ic=0; ic<SENS_N; ic++)
         else
         {
           sens_zero_count[ic]++;
-        }
-    }
+        }  
+    } 
+    ///////////////////////
+    
+  
+  
+  
+    
 }
+
 //------------------------------------------------------------------------------
 void Clear_UDC_Arrays()
 {
@@ -606,24 +666,27 @@ void Clear_UDC_Arrays()
     //
     sens_count=0;
     for (int ic=0; ic<SENS_N; ic++)
-    {
+    {     
           sens_plus_count[ic]=0;
           sens_zero_count[ic]=0;
-    }
+    } 
     ADC_WORK_FLAG=true;
-
+  
 }
-/*----------------------------------------------------------------------------*/
-//loop cycle
+//------------------------------------------------------------------------------
 static void task_adc_func(void* param)
 {
-Clear_UDC_Arrays();
-ADC_WORK_FLAG=TRUE;
-// loop
-for (;;)
-  {
-  if (ADC_WORK_FLAG)
-      Check_Power();
-  }
+   Clear_UDC_Arrays();
+   ADC_WORK_FLAG=TRUE;
+   ///
+    for (;;)
+    {
+      //
+      if (ADC_WORK_FLAG)
+        Check_Power(); 
+      //
+      
+ 
+    }
 }
 
