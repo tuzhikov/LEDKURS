@@ -2636,6 +2636,9 @@
       <name>$PROJ_DIR$\src\version.h</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\src\version.tmpl.h</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\src\vpu.c</name>
     </file>
     <file>

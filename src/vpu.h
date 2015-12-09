@@ -116,11 +116,11 @@ void uart1_int_handler(); //эта функция вызываеться из модуля tn_user.c в функци
 void updateCurrentDatePhase(const BYTE stNet,const BYTE idDk,const BYTE vpuOn,
                             const BYTE vpuST); // состояние VPU
 void ReturnToWorkPlan(void);  // вернуться в режим ПЛАН
-BYTE retRequestsVPU(void);    // ВПУ запросы
-Type_STATUS_VPU retStateVPU(void);
-void setStatusLed(const WORD stLed);
-BYTE retOnVPU(void);
-WORD retStatusLed(void);
+//BYTE retRequestsVPU(void);    // ВПУ запросы
+//Type_STATUS_VPU retStateVPU(void);
+//void setStatusLed(const WORD stLed);
+//BYTE retOnVPU(void);
+//WORD retStatusLed(void);
 // текcтовое состояние ВПУ
 void retPhaseToText(char *pStr,const BYTE leng,const BYTE phase);
 WORD retTextToPhase(char *pStr);

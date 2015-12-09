@@ -30,11 +30,11 @@
 
 #define VER_MAJOR               2
 #define VER_MINOR               0
-#define VER_MINORER             6
+#define VER_MINORER             8
 #define VER_SVN_REV             0     // SVN Revision
 #define VER_FIX_REV             0
 
-#define VER_SVN_DATE            "2015/01/27 10:25:10"  // SVN Revision Date
+#define VER_SVN_DATE            "2015/12/08 15:00:00"  // SVN Revision Date
 
 #define TYPE_DEVICE             0
 

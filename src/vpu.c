@@ -35,6 +35,12 @@ VPU_EXCHANGE  vpu_exch;
 TVPU dataVpu;
 static BOOL flagAutoMode = false;
 static BOOL flagVpuMode  = false;
+static BOOL flagRecOK  = false;
+static BOOL flagRecNO  = false;
+
+static BOOL flagRecNoANSW    = false;
+static BOOL flagRecANSW_ERR  = false;
+
 static BYTE stUpdataButtonPhase  = Null;// режимы работы кнопок РУ и АВТО
 static BYTE stUpdataButtonManual = Null;
 /*TASK*/
@@ -421,20 +427,29 @@ U16 DataExchange(void)
         if(answer&(ansOk)){  //(ansOk|ansErr)
           if(vpuCmd[number].FlagEnd){
             dataVpu.satus = tlEnd;number = NULL;step = Null;
+            /*------------------------*/
+            flagRecNoANSW = false;
+            flagRecANSW_ERR = false;
+            /*------------------------*/
             return ansOk;
             }
           countError = 0;
           number++;
           }
         if(answer&(ansErr|ansNoAnsw)){
-          if(++countError>10){
-            countError = 0;dataVpu.satus = tlNo;return ansErr;} // 5 sec
+          /*--------------------------*/
+          if(answer&ansErr)   if(!flagRecNoANSW)  {Event_Push_Str("Ошибка ответа ВПУ");flagRecNoANSW = true;}
+          if(answer&ansNoAnsw)if(!flagRecANSW_ERR){Event_Push_Str("Нет ответа от ВПУ");flagRecANSW_ERR = true;}
+          /*--------------------------*/
+          if(++countError>50){ // delay 5 sec
+            countError = 0;dataVpu.satus = tlNo;return ansErr;}
           }
         step = Null;
         return ansNull;
       default:
         step = Null;
         countError = NULL;
+        Event_Push_Str("Ошибка атомта ВПУ");
         return ansErr;
      }
 }
@@ -721,6 +736,7 @@ static void task_VPU_func(void* param)
           VPU_LOGIC();
           switchPhaseOnVPU();
           update_m_t_s(&vpu_exch.s_to_m); // copy struct s_to_m to m_t_s
+          if(!flagRecOK){Event_Push_Str("Обмен ВПУ OК");flagRecOK = true;flagRecNO = false;}
           }
     else if(answer&ansErr){
             ResetStrSlave();         // сброс структуры опроса ВПУ.
@@ -729,7 +745,17 @@ static void task_VPU_func(void* param)
             ClearStatusButton();     // сбросс кнопок
             ReturnToWorkPlan();      // return to PLAN
             ClearStatusButton();
+            if(!flagRecNO){Event_Push_Str("Обмен ВПУ NO");flagRecNO = true;flagRecOK = false;}
             }
+    // запись в журнал 1 раз в 60 сек
+    /*
+    static WORD CountTime = 0;
+    if(++CountTime>600){
+      char TempBuff[60];
+      snprintf(TempBuff,sizeof(TempBuff), "Задача вызвалась %u раз за 1 мин.",CountTime);
+      Event_Push_Str(TempBuff);
+      CountTime = 0;
+      }*/
     /*switch(stepVPU)
       {
       case Null:// активный ВПУ
@@ -899,10 +925,10 @@ return ansErr;
 }
 //------------------------------------------------------------------------------
 /*запросы по ВПУ отправляем true если все ДК в системе*/
-BYTE retRequestsVPU(void)
+/*BYTE retRequestsVPU(void)
 {
 return ((vpu_exch.s_to_m.vpuOn)&&(vpu_exch.s_to_m.vpu!=tlNo)); //РУ on, вызвана фаза
-}
+}*/
 /*--------------------- return text status ----------------------------*/
 void retPhaseToText(char *pStr,const BYTE leng,const BYTE phase)
 {
@@ -993,12 +1019,12 @@ if(strcmp(pStr,"MANUAL") == 0)return tlManual;
 return tlNo;
 }
 /*----------------------------------------------------------------------------*/
-BYTE retOnVPU(void){return vpu_exch.s_to_m.vpuOn;}
+//BYTE retOnVPU(void){return vpu_exch.s_to_m.vpuOn;}
 /*----------------------------------------------------------------------------*/
-Type_STATUS_VPU retStateVPU(void){return vpu_exch.s_to_m.vpu;}
+//Type_STATUS_VPU retStateVPU(void){return vpu_exch.s_to_m.vpu;}
 /*----------------------------------------------------------------------------*/
 // состояния светофдиодов на ВПУ
-WORD retStatusLed(void)
+/*WORD retStatusLed(void)
 {
 WORD led = 0;
 //tn_mutex_lock(&led_mutex, TN_WAIT_INFINITE);
@@ -1008,10 +1034,10 @@ led = dataVpu.led[ButPhase8].On<<14|dataVpu.led[ButPhase7].On<<12|
       dataVpu.led[ButPhase2].On<<2|dataVpu.led[ButPhase1].On<<0;
 //tn_mutex_unlock(&led_mutex);
 return led;
-}
+}*/
 /*----------------------------------------------------------------------------*/
 // отобразить сотояние светодиодов из вне
-void setStatusLed(const WORD stLed)
+/*void setStatusLed(const WORD stLed)
 {
 const BYTE MASK = 0x03;
 //tn_mutex_lock(&led_mutex, TN_WAIT_INFINITE);
@@ -1024,5 +1050,5 @@ dataVpu.led[ButPhase3].On = (TYPE_LED_SATUS)((stLed>>4)&MASK);
 dataVpu.led[ButPhase2].On = (TYPE_LED_SATUS)((stLed>>2)&MASK);
 dataVpu.led[ButPhase1].On = (TYPE_LED_SATUS)((stLed>>0)&MASK);
 //tn_mutex_unlock(&led_mutex);
-}
+}*/
 /*----------------------------------------------------------------------------*/
