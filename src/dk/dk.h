@@ -237,32 +237,22 @@ typedef struct
        //
        //SYSTEMTIME       CT; // control time
 }__DK;
-
-
-///////////////////////////////////////
-
-int   Init_DK();
-unsigned short   DK_MAIN();
-unsigned short Update_STATES(bool flash);
-void New_Project();
-
-
+/*----------------------------------------------------------------------------*/
+extern  TPROJECT  PROJ[DK_N];
+extern  BYTE  CUR_DK;
+extern __DK   DK[DK_N];
+extern BYTE   dk_num; //
+extern SYSTEMTIME CT; // control time
+/*----------------------------------------------------------------------------*/
+int MODEL();
+int Init_DK();
 int REQUESTS();
-int   MODEL();
-
- extern  TPROJECT  PROJ[DK_N];
- extern  BYTE  CUR_DK;
- extern __DK   DK[DK_N];
- extern BYTE   dk_num; //
- extern SYSTEMTIME   CT; // control time
- //extern SYSTEMTIME   CT; // control time
-
- //BOOL TIME_END();
- //void TIME_PLUS(SYSTEMTIME &tt, SYSTEMTIME &tplus,int sec_plus);
- //bool Compare_Times(SYSTEMTIME &tt, SYSTEMTIME &tl);
- ////////////////////////////////////////////////////////////////////////////////////
+unsigned short DK_MAIN();
+unsigned short Update_STATES(bool flash);
+void TIME_PLUS (SYSTEMTIME *tt,SYSTEMTIME *tplus,int sec_plus);
+////////////////////////////////////////////////////////////////////////////////
 // ВЫделены функции
-////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 void DK_Service_OS(void);
 void DK_Service_YF(void);
 void DK_Service_undo(void);

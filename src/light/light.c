@@ -762,7 +762,7 @@ void Check_LET()
 
 static void task_light_func(void* param)
 {
-    unsigned short light;
+    //unsigned short light;
     bool  b_ch;//, b_err;
     unsigned int fpattern;
     //int i_sec;
@@ -879,40 +879,33 @@ static void task_light_func(void* param)
                  Next_Try(b_ch);
                  break;
               }
-              ////
-              light = DK_MAIN();
+              //
+              DK_MAIN();
               tn_task_sleep(500);
-              ///
+              //
               b_ch = Check_Chan();
               if (b_ch)
               {
                  Next_Try(b_ch);
                  break;
               }
-              ////////////
-              //pin_off(OPIN_TEST1);
+              //
               for (int i_dk=0; i_dk<dk_num; i_dk++)
               {
                  CUR_DK = i_dk;
                  Update_STATES(true);
               }
               SET_OUTPUTS();
-              ///////////
-              ///
               break;
          }
-         //////////////////
-          case LIGHT_FAULT:
+         //
+         case LIGHT_FAULT:
           {
               tn_task_sleep(500);
               break;
 
           }
-          //////////////////
-
        }
-
-       //////////////////////////
     }
 }
 //------------------------------------------------------------------------------

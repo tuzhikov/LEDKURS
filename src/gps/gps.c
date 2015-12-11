@@ -14,6 +14,7 @@
 #include "gps.h"
 #include "../memory/ds1390.h"
 #include "../dk/dk.h"
+#include "../event/evt_fifo.h"
 
 
 #include "../debug/debug.h"
@@ -58,9 +59,9 @@ static BOOL tx_pkt_snd_one();
 // состояние светика 0 - нет жпс, 1 - что-то шлется, 2 - верное время
 static unsigned char GPS_LED=0;
   SYSTEMTIME   cool_pack_recv, bad_pack_recv; // control time
-  
-static unsigned char GPS_synk_flag;//=false; 
-volatile unsigned char gps_pps_counter=0;    
+
+static unsigned char GPS_synk_flag;//=false;
+volatile unsigned char gps_pps_counter=0;
 
 void GPS_init()
 {
@@ -73,7 +74,7 @@ void GPS_init()
     MAP_GPIOPinConfigure(GPIO_PA0_U0RX);
     MAP_GPIOPinConfigure(GPIO_PA1_U0TX);
     MAP_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
-    
+
     MAP_UARTConfigSetExpClk(UART_BASE, MAP_SysCtlClockGet(), UART_SPEED, UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE | UART_CONFIG_PAR_NONE);
     MAP_UARTDisable(UART_BASE);
     MAP_UARTTxIntModeSet(UART_BASE, UART_TXINT_MODE_EOT);
@@ -87,9 +88,9 @@ void GPS_init()
     MAP_IntEnable(INT_GPIOG);
     // Настроить прерывания на PPS
     MAP_GPIOIntTypeSet(GPIO_PORTG_BASE, GPIO_PIN_7, GPIO_FALLING_EDGE);
-    MAP_GPIOPinIntEnable(GPIO_PORTG_BASE, GPIO_PIN_7);   
+    MAP_GPIOPinIntEnable(GPIO_PORTG_BASE, GPIO_PIN_7);
     //
-    
+
     if (tn_task_create(&task_GPS_tcb, &task_GPS_func, TASK_GPS_PRI,
         &task_GPS_stk[TASK_GPS_STK_SZ - 1], TASK_GPS_STK_SZ, 0,
         TN_TASK_START_ON_CREATION) != TERR_NO_ERR)
@@ -97,14 +98,14 @@ void GPS_init()
         dbg_puts("tn_task_create(&task_GPS_tcb) error");
         goto err;
     }
-    
+
     // Настроить прерывания на PPS
     //MAP_IntEnable(INT_GPIOG);
     //MAP_GPIOIntTypeSet(GPIO_PORTG_BASE, GPIO_PIN_7, GPIO_FALLING_EDGE);
-    //MAP_GPIOPinIntEnable(GPIO_PORTG_BASE, GPIO_PIN_7);   
+    //MAP_GPIOPinIntEnable(GPIO_PORTG_BASE, GPIO_PIN_7);
 
     dbg_puts("[done]");
-    
+
     return;
 err:
     dbg_trace();
@@ -133,7 +134,7 @@ void uart0_int_handler()
             {
                 if ( g_rx_buf_len > 10)
                 {
-                  
+
                     unsigned char crc;
                     if (g_rx_buf[--g_rx_buf_len] > '9')
                         crc = 0x0A + g_rx_buf[g_rx_buf_len]-'A';
@@ -155,12 +156,12 @@ void uart0_int_handler()
                     {
                         health_count = 0;
                         gps_info.pack_found++;
-                        
+
                        /* Parse packet */
                         if( !strncmp((char*)g_rx_buf, "$GPGGA", 6) )
 	                {
 		            ProcessGPGGA(&g_rx_buf[7]);
-                            st[1] =hw_time();                            
+                            st[1] =hw_time();
                         }
 	                else if( !strncmp((char*)g_rx_buf, "$GPRMC", 6))
 	                {
@@ -170,15 +171,15 @@ void uart0_int_handler()
                             //
                             //
                             st[0] =hw_time();
-                            
-                        }                          
+
+                        }
                     }else
                     {
                         gps_info.crc_error++;
                     }
                 }
-                
-                g_rx_buf_len = 0;  
+
+                g_rx_buf_len = 0;
             }else
             if (b != 0x0A)
                 g_rx_buf[g_rx_buf_len++] = b;
@@ -227,17 +228,17 @@ void uart0_int_handler()
                         crc |= (g_rx_buf[g_rx_buf_len]-'0')<< 4;
 
                     g_rx_buf_len--;
-            
+
                     do{
                         crc ^= g_rx_buf[--g_rx_buf_len];
                     }while( g_rx_buf_len );
 
-                        
+
                     if (!crc) // CRC пакета сошёлся - обработать!
                     {
                         health_count = 0;
-                    
-                       
+
+
                         if( !strncmp((char*)g_rx_buf, "GPGGA", 5) )
 	                {
 		            ProcessGPGGA(&g_rx_buf[6]);
@@ -245,13 +246,13 @@ void uart0_int_handler()
 	                else if( !strncmp((char*)g_rx_buf, "GPRMC", 5))
 	                {
 	                    ProcessGPRMC(&g_rx_buf[6]);
-                        }                          
+                        }
                     }
                 }
-                
-                g_rx_buf_len = 0;  
+
+                g_rx_buf_len = 0;
             }
-            
+
             if (b == 0x0D)
             {
             }
@@ -274,10 +275,10 @@ void GPS_PPS_int_handler(void)
 {
 
     MAP_UARTIntDisable(UART_BASE, UART_INT_RX);
-   
+
     memcpy(&gps_info.time_now, &gps_info.time_pack, sizeof(gps_info.time_pack));
     gps_pps_counter++;
-    
+
     MAP_UARTIntEnable(UART_BASE, UART_INT_RX);
 
 }
@@ -297,7 +298,7 @@ void Synk_TIME()
      //////////////
      if (gps_info.time_valid)
      {
-       
+
        st.tm_hour = gps_info.time_pack.hour;
        st.tm_mday = gps_info.time_pack.date;
        st.tm_min  = gps_info.time_pack.min;
@@ -308,15 +309,15 @@ void Synk_TIME()
        //
        if (st.tm_year<100)
          st.tm_year+=2000;
-       
+
        ////////////////
        // Корректировка UTC+
        int gmt=4;
        if (DK[CUR_DK].proj_valid)
           gmt = PROJ[CUR_DK].jornal.gmt;
-       
+
        TIME_PLUS(&st, &n_st, gmt*3600);
-       
+
        //////
             t.msec = 0;
             t.sec = n_st.tm_sec;
@@ -334,8 +335,8 @@ void Synk_TIME()
             {
               GPS_LED = 1;
             }
-            
-       
+
+
      }
 }
 //------------------------------------------------------------------------------
@@ -351,22 +352,22 @@ void Check_State_LED()
     ///
     if (i_c > i_b)
     {
-      if (i_b>5) 
+      if (i_b>5)
        GPS_LED=0;
       else
         GPS_LED=1;
-    }  
+    }
     else
     {
-      if (i_c>5) 
+      if (i_c>5)
        GPS_LED=0;
       else
         GPS_LED=2;
     }
     ////
-    
-    
-    
+
+
+
 }
 //------------------------------------------------------------------------------
 static void task_GPS_func(void* param)
@@ -402,29 +403,29 @@ static void task_GPS_func(void* param)
           else
           {
             pin_on(OPIN_TEST1);
-          }  
+          }
         }
         ///
         count_time++;
         if ((count_time % 100)==0)
           GPS_synk_flag=true;
         //Synk_TIME();
-          
+
         //
         if (health_count > 4)
         {
             gps_info.health = FALSE;
-            //PPS_INT_ENABLE(); //PPS_INT_DISABLE();                
+            //PPS_INT_ENABLE(); //PPS_INT_DISABLE();
             pin_on(OPIN_GPS_RESET);  // Пробуем сбросить модуль GPS
             health_count = 1;
         }
         else
         {
-            pin_off(OPIN_GPS_RESET);            
+            pin_off(OPIN_GPS_RESET);
             if (!health_count++)
                 gps_info.health = TRUE;
         }
-        
+
         if (health != gps_info.health)
         {
             health = gps_info.health;
@@ -440,7 +441,7 @@ static void task_GPS_func(void* param)
             if (fix_valid)
                 dbg_puts("GPS/GLONASS FIX valid");
             else
-                dbg_puts("GPS/GLONASS FIX invalid");        
+                dbg_puts("GPS/GLONASS FIX invalid");
         }
 
         if (time_valid != gps_info.time_valid)
@@ -453,7 +454,7 @@ static void task_GPS_func(void* param)
             }
             else
                 dbg_puts("GPS/GLONASS time invalid");
-        }        
+        }
     }
 }
 //------------------------------------------------------------------------------
@@ -481,16 +482,16 @@ static BOOL tx_pkt_snd_one()
 void Get_gps_info(GPS_INFO *gps)
 {
     MAP_UARTIntDisable(UART_BASE, UART_INT_RX);
-   
+
     memcpy(gps, &gps_info, sizeof(gps_info));
-    
+
     MAP_UARTIntEnable(UART_BASE, UART_INT_RX);
 }
 //------------------------------------------------------------------------------
 BOOL Send_Data_uart(const char *buf, unsigned char len)
 {
     unsigned char send_first_byte = g_tx_buf_len;
-    
+
     MAP_UARTIntDisable(UART_BASE, UART_INT_TX);
 
     while (len-- && g_tx_buf_len<UART_BUF_SZ)
@@ -499,7 +500,7 @@ BOOL Send_Data_uart(const char *buf, unsigned char len)
     }
 
     MAP_UARTIntEnable(UART_BASE, UART_INT_TX);
-    
+
     if (!send_first_byte)  // Если ничего до этого не отправлялось
         tx_pkt_snd_one();
 
@@ -537,9 +538,9 @@ static BOOL GetField(unsigned char *pData, unsigned char *pField, unsigned char 
         {
     	nField++;
         }
-  
+
         i++;
-  
+
         if (pData[i] == NULL)
         {
     	pField[0] = '\0';
@@ -560,7 +561,7 @@ static BOOL GetField(unsigned char *pData, unsigned char *pField, unsigned char 
     while(pData[i] != ',' && pData[i] != '*' && pData[i])
     {
         pField[i2] = pData[i];
-        i2++; 
+        i2++;
         i++;
 
     //
@@ -621,17 +622,17 @@ static void ProcessGPRMC(unsigned char *pData)
     if (GetField(pData, pField, 1, MAXFIELD) && pField[0] == 'A')
     {
         gps_info.fix_valid = TRUE;
-        gps_info.time_valid = TRUE; 
+        gps_info.time_valid = TRUE;
         //GPS_LED = 2;
         memcpy(&cool_pack_recv, &CT, sizeof(SYSTEMTIME));
     }
     else
     {
         gps_info.fix_valid = FALSE;
-        gps_info.time_valid = FALSE; 
+        gps_info.time_valid = FALSE;
         //
         memcpy(&bad_pack_recv, &CT, sizeof(SYSTEMTIME));
-        
+
     }
     //
     // Latitude
@@ -685,7 +686,7 @@ static void ProcessGPRMC(unsigned char *pData)
     {
         gps_info.Velocity.Course = 0.0;
     }
-    
+
     //
     // Date
     //
@@ -711,7 +712,7 @@ static float string_to_float ( unsigned char * buf)
     unsigned long del = 1;
     unsigned char i = 0;
     BOOL dot = FALSE;
-    
+
     while((buf[i]>='0' && buf[i]<='9') || (buf[i] == '.' && !dot))
     {
         if (buf[i] == '.')
@@ -724,7 +725,7 @@ static float string_to_float ( unsigned char * buf)
 
             if (dot)
                 del*=10;
-        }  
+        }
         if (i++ > 10)
             break;
     };

@@ -44,7 +44,7 @@ static BOOL flagRecANSW_ERR  = false;
 static BYTE stUpdataButtonPhase  = Null;// режимы работы кнопок РУ и АВТО
 static BYTE stUpdataButtonManual = Null;
 /*TASK*/
-#define VPU_REFRESH_INTERVAL        100
+#define VPU_REFRESH_INTERVAL        25  // установлен эксперементальным путем
 static TN_TCB task_VPU_tcb;
 #pragma location = ".noinit"
 #pragma data_alignment=8

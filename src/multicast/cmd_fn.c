@@ -1489,20 +1489,24 @@ static err_t udp_send_state(struct cmd_raw* cmd_p,int argc, char** argv)
 /*----------------------------------------------------------------------------*/
 static err_t udp_send_info(struct cmd_raw* cmd_p)
 {
-    char buf[96];
-    char buf1[128];
+    char buf[128];
     snprintf (buf, sizeof (buf),
-        "SUCCESS:%s ver.%u.%u.%u \r\n "
-        "%s \r\n "
+        "SUCCESS:%s VER.%u.%u.%u \r\n "
+        "%s-%s\r\n"
         "%s \r\n ",
-        APP_NAME,VER_MAJOR,VER_MINOR,VER_MINORER,VER_SVN_DATE,APP_COPYRIGHT);
-    ///
+        APP_NAME,VER_MAJOR,VER_MINOR,VER_MINORER,
+        //VER_SVN_DATE,
+        __DATE__,__TIME__,
+        APP_COPYRIGHT);
+
+    /*
     //get_version(buf, sizeof(buf));
+    char buf1[128];
     snprintf (buf1, sizeof(buf1),"SUCCESS:%s\n"
         "CPU: LM3S9B96\n"
         "Clk: %u MHz\n\n",
         buf, hw_sys_clock()
-        );
+        );*/
     return udp_sendstr(cmd_p, buf);
 }
 

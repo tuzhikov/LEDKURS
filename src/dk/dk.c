@@ -1338,20 +1338,28 @@ int CUR_NEXT()
                         // определяем время окончания
                         if ((DK[CUR_DK].CUR.source==PLAN) || (DK[CUR_DK].CUR.source==TVP))
                         {
-                              //TIME_PLUS(&CT, &DK[CUR_DK].control.end,
-                              //  osn_takt_time);
-                             if (TEST_STA(&DK[CUR_DK].CUR, SPEC_PROG, SPEC_PROG_YF,0))
+                        //TIME_PLUS(&CT, &DK[CUR_DK].control.end,
+                        //  osn_takt_time);
+                        if (TEST_STA(&DK[CUR_DK].CUR, SPEC_PROG, SPEC_PROG_YF,0))
                               osn_takt_time[CUR_DK]=1;
-                              ///
-                              DK[CUR_DK].control.len = osn_takt_time[CUR_DK];
+                        //
+                        DK[CUR_DK].control.len = osn_takt_time[CUR_DK];
                         }
                         else
                         {
-                          // Для ALARM... - длительность - не определена
-                          TIME_PLUS(&CT, &DK[CUR_DK].control.end, 10);
-                          //DK[CUR_DK].PROJ->guard.faza_max????
-                          DK[CUR_DK].control.len = 1;
-
+                        // Для ALARM... - длительность - не определена
+                        TIME_PLUS(&CT, &DK[CUR_DK].control.end, 10);
+                        //DK[CUR_DK].PROJ->guard.faza_max????
+                        DK[CUR_DK].control.len = 1;
+                        //установить защитное время в режиме ВПУ
+                        if((DK[CUR_DK].CUR.source==VPU)&&(DK[CUR_DK].OLD.source==VPU)){
+                          if(DK[CUR_DK].NEXT.faza!=DK[CUR_DK].OLD.faza){
+                            const WORD Tmin = DK[CUR_DK].PROJ->Program.fazas[DK[CUR_DK].CUR.prog_faza].Tmin;
+                            DK[CUR_DK].control.len = Tmin;
+                            // время окончания
+                            TIME_PLUS(&CT, &DK[CUR_DK].control.end,DK[CUR_DK].control.len);
+                            }
+                          }
                         }
 return (0);
 }
@@ -1364,18 +1372,26 @@ int SET_NEXT_STATE()
 {
         D_W("SET_NEXT_STATE()\n");
         // повторение фаз после ТВП
-        if (DK[CUR_DK].CUR.source==TVP)
-          if (DK[CUR_DK].NEXT.source==PLAN)
-          {
-             if (DK[CUR_DK].CUR.prog_faza==
-                 DK[CUR_DK].NEXT.prog_faza)
-             {
-                 DK[CUR_DK].NEXT.presence=false;
-                 DK[CUR_DK].PLAN.cur.set = true;
-                 GO_PLAN();
-             }
+        if(DK[CUR_DK].CUR.source==TVP){
+          if(DK[CUR_DK].NEXT.source==PLAN){
+            if(DK[CUR_DK].CUR.prog_faza==DK[CUR_DK].NEXT.prog_faza){
+              DK[CUR_DK].NEXT.presence=false;
+              DK[CUR_DK].PLAN.cur.set = true;
+              GO_PLAN();
+              }
+            }
           }
-        //
+        // фаза после ВПУ
+       if((DK[CUR_DK].CUR.source==VPU)&&(DK[CUR_DK].NEXT.source==PLAN)){
+          // установить в начало фазы
+          DK[CUR_DK].CUR.prog_faza = DK[CUR_DK].NEXT.prog_faza = DK[CUR_DK].CUR.faza;
+          DK[CUR_DK].PLAN.cur.prog_faza = DK[CUR_DK].PLAN.next.prog_faza = DK[CUR_DK].CUR.faza; // вернемся в фазу оставленную ВПУ
+          //переход в конец фазы
+          /*DK[CUR_DK].NEXT.presence=false;
+          DK[CUR_DK].PLAN.cur.set = true;
+          GO_PLAN();*/
+          }
+        //проверка на вызов любого режима не из PLAN
         if (DK[CUR_DK].CUR.source > DK[CUR_DK].NEXT.source)
         {
            D_W("MOre prioritet\n");
@@ -1383,30 +1399,29 @@ int SET_NEXT_STATE()
            //
            if (DK[CUR_DK].CUR.work == SPEC_PROG)
            {
-                memcpy(&DK[CUR_DK].control.end, &CT, sizeof(SYSTEMTIME));
-                CUR_NEXT();
+           memcpy(&DK[CUR_DK].control.end, &CT, sizeof(SYSTEMTIME));
+           CUR_NEXT();
            }
            else
            {
-               if (DK[CUR_DK].control.STA==STA_OSN_TAKT)
-               {
-                  //int i = ;osn_takt_time
-                  if ((osn_takt_time[CUR_DK] - DK[CUR_DK].control.len) > DK[CUR_DK].PROJ->Program.fazas[DK[CUR_DK].CUR.prog_faza].Tmin)
-                    DK[CUR_DK].control.len = 0;//DK[CUR_DK].PROJ->Program.fazas[DK[CUR_DK].CUR.prog_faza].Tmin;
-                  // повторение фаз после ТВП
-                  if (DK[CUR_DK].CUR.source==PLAN)
-                    if (DK[CUR_DK].OLD.source==PLAN)
-                  {
-                     if (DK[CUR_DK].CUR.prog_faza==
-                       DK[CUR_DK].OLD.prog_faza)
-                     {
-                        DK[CUR_DK].control.len = 0;
-                      }
-                  }
+           if (DK[CUR_DK].control.STA==STA_OSN_TAKT){
+            //установим Тмин
+            const WORD Tmin = DK[CUR_DK].PROJ->Program.fazas[DK[CUR_DK].CUR.prog_faza].Tmin; //DK[CUR_DK].PROJ->Program.fazas[DK[CUR_DK].CUR.prog_faza].Tmin
+            if((osn_takt_time[CUR_DK] - DK[CUR_DK].control.len) > Tmin){
+              DK[CUR_DK].control.len = 0;
               }
+            // повторение фаз после ТВП и ВПУ
+            if(DK[CUR_DK].CUR.source==PLAN){
+              if(DK[CUR_DK].OLD.source==PLAN){
+                if(DK[CUR_DK].CUR.prog_faza==DK[CUR_DK].OLD.prog_faza){
+                  DK[CUR_DK].control.len = 0;
+                  }
+                }
+              }
+            }
            }
         }// end if()
-return (0);
+return Null;
 }
 /*----------------------------------------------------------------------------*/
 void Check_Low_Level_Spec_Prog()
@@ -1485,14 +1500,13 @@ int CONTROL()
                          CUR_NEXT();
                          break;
                       }
-                      ///
+                      //
                       DK[CUR_DK].control.len = Tprom_len[CUR_DK];
                       //
                       //в control.end - было окончание текущего состояния - основного такта
                       memcpy(&DK[CUR_DK].control.start, &DK[CUR_DK].control.end, sizeof(SYSTEMTIME));
                       // Окончание пром. тактов
                       TIME_PLUS(&DK[CUR_DK].control.start, &DK[CUR_DK].control.end, Tprom_len[CUR_DK]);
-                      //memcpy(&DK[CUR_DK].control.end, &DK[CUR_DK].CUR.end, sizeof(SYSTEMTIME));
                       //  чистим индексы
                       for (int i=0;i < DK[CUR_DK].PROJ->AmountDirects; i++)
                       {
